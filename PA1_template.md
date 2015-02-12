@@ -1,14 +1,10 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
-```{r}
 
+```r
+setwd("C:\\Users\\Anki\\Documents\\GitHub\\RepData_PeerAssessment1")
 data <- read.table(unz("activity.zip", "activity.csv"), header=T, quote="\"", sep=",")
 data$date <- as.Date(data$date) 
 ```
@@ -16,7 +12,8 @@ data$date <- as.Date(data$date)
 
 ## What is mean total number of steps taken per day?
 
-```{r}
+
+```r
 data.ignore.na <- na.omit(data) 
 
 # sum steps by date
@@ -30,17 +27,33 @@ hist(daily.steps$steps,
      main=" ",
      breaks=10,
      xlab="Total Number of Steps Taken Daily")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
+```r
 # print mean
 mean(daily.steps$steps); 
+```
 
+```
+## [1] 10766.19
+```
+
+```r
 #print median
 median(daily.steps$steps) 
+```
+
+```
+## [1] 10765
 ```
 
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 library(plyr)
 # Calculate average steps for each of 5-minute interval during a 24-hour period
 interval.mean.steps <- ddply(data.ignore.na,~interval, summarise, mean=mean(steps))
@@ -52,26 +65,58 @@ qplot(x=interval, y=mean, data = interval.mean.steps,  geom = "line",
       ylab="Number of Step Count",
       main="Average Number of Steps Taken Averaged Across All Days"
       )
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+```r
 # Which 5-minute interval, on average across, contains the maximum number of steps?
 interval.mean.steps[which.max(interval.mean.steps$mean), ]
+```
+
+```
+##     interval     mean
+## 104      835 206.1698
 ```
 
 ## Imputing missing values
 
 
 
-```{r}
+
+```r
 # Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 library(sqldf)
+```
+
+```
+## Loading required package: gsubfn
+## Loading required package: proto
+## Loading required package: RSQLite
+## Loading required package: DBI
+```
+
+```r
 tNA <- sqldf(' 
     SELECT d.*            
     FROM "data" as d
     WHERE d.steps IS NULL 
     ORDER BY d.date, d.interval ') 
-    
+```
+
+```
+## Loading required package: tcltk
+```
+
+```r
 NROW(tNA) 
+```
 
+```
+## [1] 2304
+```
 
+```r
 t1 <- sqldf('
     SELECT d.*, i.mean
     FROM "interval.mean.steps" as i
@@ -99,21 +144,40 @@ hist(daily.61.steps$steps,
      main=" ",
      breaks=10,
      xlab="After Imputate NA -Total Number of Steps Taken Daily")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
+```r
 #Calculate and report the mean and median total number of steps taken per day.
 t1.mean.steps.per.day <- as.integer(t1.total.steps / NROW(t1.total.steps.by.date) )
 t1.mean.steps.per.day
+```
 
+```
+## [1] 10766
+```
+
+```r
 t1.median.steps.per.day <- median(t1.total.steps.by.date$t1.total.steps.by.date)
+```
+
+```
+## Warning in is.na(x): is.na() applied to non-(list or vector) of type
+## 'NULL'
+```
+
+```r
 t1.median.steps.per.day
+```
 
-
+```
+## NULL
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
 
+```r
 t1$weektime <- as.factor(ifelse(weekdays(t1$date) %in% 
                 c("Saturday","Sunday"),"weekend", "weekday"))
 
@@ -133,6 +197,6 @@ p <- xyplot(mean.steps ~ interval | factor(weektime), data=t5,
        xlab="5-Minute Interval (military time)",
        ylab="Average Number of Steps Taken")
 print (p)  
-
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
